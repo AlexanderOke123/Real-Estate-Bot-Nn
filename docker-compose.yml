@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: prh-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-real_estate_leads}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-real_estate_leads}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: prh-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=Africa/Lagos
+      - TZ=Africa/Lagos
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Backend and Frontend are typically run locally during development.
+  # Uncomment and configure when you want them containerised too.
+
+  # backend:
+  #   build: ./backend
+  #   container_name: prh-backend
+  #   ports:
+  #     - "8000:8000"
+  #   env_file: .env
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./backend:/app
+
+  # frontend:
+  #   build: ./frontend
+  #   container_name: prh-frontend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - VITE_API_URL=http://localhost:8000
+  #   depends_on:
+  #     - backend
+
+volumes:
+  postgres_data:
+  n8n_data:

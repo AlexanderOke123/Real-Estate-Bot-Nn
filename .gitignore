@@ -1,0 +1,93 @@
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Node / Frontend
+node_modules/
+.npm
+.yarn/
+.pnp.*
+dist/
+build/
+.vite/
+*.local
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+.docker/
+
+# Database
+*.db
+*.sqlite3
+
+# n8n
+n8n/data/
+.n8n/
+
+# Secrets / Credentials
+*credentials*
+*secrets*
+google-credentials.json
+*.pem
+*.key
+
+# Testing / Coverage
+coverage/
+.nyc_output/
+
+# Misc
+*.bak
+*.tmp
+*.temp
+.cache/
