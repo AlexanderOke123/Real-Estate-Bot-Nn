@@ -7,111 +7,107 @@ AI-powered digital receptionist and lead management system for PrimeHomes Realty
 This system automatically:
 
 1. Receives customer enquiries (chat)
-2. Understands natural language with AI
+2. Understands natural language with AI (via n8n)
 3. Extracts structured property requirements
-4. Qualifies and scores leads using deterministic rules
-5. Stores everything in PostgreSQL (system of record)
+4. Qualifies and scores leads
+5. Stores everything in **MySQL** (local development)
 6. Notifies the sales team for HOT leads
-7. Provides a sales dashboard for follow-up and lifecycle management
+7. Provides a sales dashboard for follow-up
 
-**Core principle:** AI handles repetitive qualification and organization. Sales representatives handle relationship building and closing.
+**Core principle:** AI handles repetitive qualification. Sales representatives handle relationship building and closing.
 
-## Tech Stack
+## Tech Stack (Local Development)
 
 | Layer              | Technology              |
 |--------------------|-------------------------|
-| Frontend           | React                   |
+| Frontend           | React + Vite (npm)      |
 | Backend API        | FastAPI (Python)        |
+| Database           | **MySQL** (local)       |
 | Workflow / Automation | n8n                  |
-| Database           | PostgreSQL              |
-| AI                 | LLM (structured extraction) |
-| Operational Reporting | Google Sheets        |
-| Deployment         | Docker + single VPS     |
+| AI                 | LLM via n8n             |
+
+> Docker is **not required** for local development. We use your existing MySQL installation.
 
 ## Project Structure
 
 ```text
-real-estate-lead-bot/
+Real-Estate-Bot-Nn/
 │
-├── frontend/          # React customer chat + sales dashboard
+├── frontend/          # React customer chat (orange/yellow UI)
 ├── backend/           # FastAPI application
 ├── n8n/               # Workflow definitions
-├── database/          # Migrations, seeds, schema notes
-├── tests/             # Shared / integration tests
-├── docs/              # All specifications & design docs
+├── database/          # Notes + future migrations
+├── tests/
+├── docs/              # All specifications
 │
 ├── .env.example
 ├── .gitignore
-├── docker-compose.yml
-├── docker-compose.prod.yml
 └── README.md
 ```
 
-## Quick Start (Local Development)
+## Quick Start (Local Development – No Docker)
+
+### 1. MySQL
+
+Create the database:
+
+```sql
+CREATE DATABASE real_estate_leads CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+### 2. Environment
 
 ```bash
-# 1. Clone
-git clone https://github.com/AlexanderOke123/Real-Estate-Bot-Nn.git
-cd Real-Estate-Bot-Nn
-
-# 2. Environment
 cp .env.example .env
-# Edit .env with your values
+# Edit .env and set your MySQL password + n8n webhook URL
+```
 
-# 3. Start infrastructure
-docker compose up -d postgres n8n
+Example `DATABASE_URL`:
+```env
+DATABASE_URL=mysql+pymysql://root:YOUR_PASSWORD@localhost:3306/real_estate_leads
+```
 
-# 4. Backend
+### 3. Backend
+
+```bash
 cd backend
 python -m venv .venv
-source .venv/bin/activate   # or .venv\Scripts\activate on Windows
-pip install -r requirements.txt
-# Run migrations (once Alembic is set up)
-uvicorn app.main:app --reload --port 8000
 
-# 5. Frontend
-cd ../frontend
+# Windows
+.venv\Scripts\activate
+
+# macOS / Linux
+source .venv/bin/activate
+
+pip install -r requirements.txt
+
+# Create tables
+python create_tables.py
+
+# Start API
+uvicorn app.main:app --reload --port 8000
+```
+
+API docs: http://localhost:8000/docs
+
+### 4. Frontend
+
+```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-Services will be available at:
+Open: http://localhost:5173
 
-- Frontend: http://localhost:3000 (or Vite default)
-- Backend API: http://localhost:8000
-- API docs: http://localhost:8000/docs
-- n8n: http://localhost:5678
-- PostgreSQL: localhost:5432
+### 5. n8n
+
+Run n8n however you normally do (desktop app, npm, etc.).
+Create a Webhook node that listens on the path you put in `N8N_WEBHOOK_URL`.
 
 ## Documentation
 
-All product and technical specifications live in the `docs/` folder:
-
-- **PRD** — Product Requirements Document
-- **System Architecture Document (SAD)**
-- **Database & Data Model Specification**
-- **API Specification**
-- **n8n Workflow Specification**
-- **AI Specification**
-- **UI-UX Specification**
-- **Lead Qualification Spec**
-- **Testing Spec**
-- **Deployment Spec**
-- **DEVELOPMENT_SETUP.md**
-- **IMPLEMENTATION.md** (progress tracker)
-- **TASK.md** (task board)
-
-Start with `docs/PrimeHomes_Real_Estate_Lead_Bot_PRD_v1.0.md` and `docs/System Architecture Document (SAD).md`.
-
-## Development Philosophy
-
-1. **Simple first** — no premature microservices, Kubernetes, or message brokers.
-2. **Clear responsibilities** — React = UI, FastAPI = business + API, n8n = orchestration, PostgreSQL = source of truth, AI = understanding only.
-3. **Deterministic where it matters** — lead scoring and state transitions are rule-based, not pure AI.
-4. **Human-in-the-loop** — AI never makes binding commitments or owns critical business decisions.
-5. **Incremental** — build, test, document, then move to the next small task.
-
-See `docs/IMPLEMENTATION.md` and `docs/TASK.md` for the current status and next tasks.
+All product and technical specifications live in the `docs/` folder.
 
 ## License
 

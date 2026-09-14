@@ -1,6 +1,5 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Optional
-from uuid import UUID
 from datetime import datetime
 
 
@@ -31,7 +30,7 @@ class LeadUpdate(LeadBase):
 
 
 class LeadOut(LeadBase):
-    id: UUID
+    id: str
     created_at: datetime
     updated_at: datetime
 

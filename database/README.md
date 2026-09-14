@@ -1,28 +1,40 @@
 # Database
 
-PostgreSQL is the **system of record** for all core application data.
+**Local development uses MySQL** (the instance already running on your machine).
 
-## Core Entities (from specification)
+PostgreSQL / Docker is reserved for later production deployment if needed.
 
-- users
-- roles
-- leads
-- conversations
-- messages
-- lead_scores
-- lead_assignments
-- follow_ups
-- activities
-- integration_syncs
+## Core Entities
 
-## Tools
+- `leads`
+- `conversations`
+- `messages`
+- (future) users, roles, lead_scores, follow_ups, activities, etc.
 
-- SQLAlchemy models (in `backend/app/models/`)
-- Alembic for migrations (to be configured in backend)
+## Local Setup (MySQL)
+
+1. Make sure MySQL is running on your PC.
+2. Create the database:
+
+```sql
+CREATE DATABASE real_estate_leads CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+3. Update `DATABASE_URL` in `.env` (or `backend/.env`):
+
+```env
+DATABASE_URL=mysql+pymysql://root:YOUR_PASSWORD@localhost:3306/real_estate_leads
+```
+
+4. From the `backend/` folder run:
+
+```bash
+python create_tables.py
+```
+
+That creates the tables. You can also use Alembic later for proper migrations.
 
 ## Notes
 
-- Google Sheets is secondary and must never become authoritative.
-- All state transitions and scoring must be auditable and deterministic where possible.
-
-See `docs/Database & Data Model Specification.md` for the full design.
+- UUIDs are stored as `CHAR(36)` / `String(36)` for maximum MySQL compatibility.
+- Google Sheets remains a secondary operational tool only.

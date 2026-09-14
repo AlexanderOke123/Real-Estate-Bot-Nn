@@ -9,8 +9,9 @@ class Settings(BaseSettings):
 
     API_V1_PREFIX: str = "/api/v1"
 
-    # Database
-    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/real_estate_leads"
+    # MySQL (local development)
+    # Format: mysql+pymysql://USER:PASSWORD@HOST:PORT/DATABASE
+    DATABASE_URL: str = "mysql+pymysql://root:password@localhost:3306/real_estate_leads"
 
     # Auth (for later sales dashboard)
     JWT_SECRET: str = "change-me-to-a-long-random-string-in-production"

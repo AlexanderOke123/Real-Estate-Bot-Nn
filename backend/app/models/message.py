@@ -1,10 +1,8 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, ForeignKey, Text, Boolean
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, DateTime, ForeignKey, Text, Boolean, Enum as SAEnum
 from sqlalchemy.orm import relationship
 import enum
-from sqlalchemy import Enum as SAEnum
 
 from app.db.session import Base
 
@@ -19,14 +17,13 @@ class MessageRole(str, enum.Enum):
 class Message(Base):
     __tablename__ = "messages"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    conversation_id = Column(UUID(as_uuid=True), ForeignKey("conversations.id"), nullable=False)
-    lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id"), nullable=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    conversation_id = Column(String(36), ForeignKey("conversations.id"), nullable=False)
+    lead_id = Column(String(36), ForeignKey("leads.id"), nullable=True)
 
     role = Column(SAEnum(MessageRole), nullable=False)
     content = Column(Text, nullable=False)
 
-    # Idempotency / processing
     client_message_id = Column(String(255), nullable=True, index=True)
     processed = Column(Boolean, default=False)
     processing_error = Column(Text, nullable=True)

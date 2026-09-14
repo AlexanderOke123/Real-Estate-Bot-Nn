@@ -1,9 +1,8 @@
 import uuid
 from datetime import datetime
 from sqlalchemy import (
-    Column, String, Text, Integer, Float, DateTime, ForeignKey, Enum as SAEnum
+    Column, String, Text, Integer, Float, DateTime, Enum as SAEnum
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import enum
 
@@ -41,7 +40,8 @@ class LeadClassification(str, enum.Enum):
 class Lead(Base):
     __tablename__ = "leads"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # Use String(36) for UUID so it works cleanly with MySQL
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=True)
     email = Column(String(255), nullable=True)
     phone = Column(String(50), nullable=True)

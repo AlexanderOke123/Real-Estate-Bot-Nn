@@ -1,19 +1,18 @@
 """
 Customer chat endpoint.
 
-Flow (as per Architecture):
+Flow:
 1. React sends message → FastAPI
 2. FastAPI stores customer message + creates/gets conversation & lead
-3. FastAPI triggers n8n webhook (async)
+3. FastAPI triggers n8n webhook (background)
 4. FastAPI returns immediate acknowledgement
-5. n8n does AI extraction → qualification → generates reply → can call back or we poll
 """
 
 import httpx
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
 
 from app.db.session import get_db
 from app.core.config import settings
@@ -46,7 +45,7 @@ async def trigger_n8n_workflow(
             if resp.status_code >= 400:
                 print(f"[n8n] webhook returned {resp.status_code}: {resp.text}")
     except Exception as e:
-        # Do not fail the customer request if n8n is temporarily down
+        # Never fail the customer request if n8n is down
         print(f"[n8n] webhook error: {e}")
 
 
@@ -56,22 +55,12 @@ async def send_chat_message(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
-    """
-    Receive a customer message.
-
-    - Creates conversation + lead if needed
-    - Stores the customer message
-    - Triggers n8n for AI processing (background)
-    - Returns immediate acknowledgement so the UI feels fast
-    """
-
     # 1. Get or create conversation
     conversation = None
     if body.conversation_id:
         conversation = db.query(Conversation).filter(Conversation.id == body.conversation_id).first()
 
     if not conversation:
-        # Create a new lead + conversation for this session
         lead = Lead(status=LeadStatus.NEW)
         db.add(lead)
         db.flush()
@@ -86,7 +75,7 @@ async def send_chat_message(
     else:
         lead = conversation.lead
 
-    # 2. Idempotency check (optional but recommended)
+    # 2. Idempotency
     if body.client_message_id:
         existing = (
             db.query(Message)
@@ -131,7 +120,6 @@ async def send_chat_message(
         session_id=conversation.session_id,
     )
 
-    # 5. Immediate response (bot reply will come later via polling or websocket in future)
     return ChatResponse(
         conversation_id=conversation.id,
         message=ChatMessageResponse(
@@ -141,18 +129,17 @@ async def send_chat_message(
             created_at=message.created_at,
             conversation_id=conversation.id,
         ),
-        bot_reply=None,  # n8n will generate the real reply
+        bot_reply=None,
         status="accepted",
         lead_id=lead.id if lead else None,
     )
 
 
-@router.get("/conversations/{conversation_id}/messages", response_model=list[ChatMessageResponse])
+@router.get("/conversations/{conversation_id}/messages", response_model=List[ChatMessageResponse])
 def get_conversation_messages(
-    conversation_id: uuid.UUID,
+    conversation_id: str,
     db: Session = Depends(get_db),
 ):
-    """Return all messages for a conversation (used by frontend to refresh)."""
     messages = (
         db.query(Message)
         .filter(Message.conversation_id == conversation_id)
