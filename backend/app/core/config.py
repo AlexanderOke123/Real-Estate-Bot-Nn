@@ -9,20 +9,30 @@ class Settings(BaseSettings):
 
     API_V1_PREFIX: str = "/api/v1"
 
+    # Database
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/real_estate_leads"
 
-    JWT_SECRET: str = "change-me"
+    # Auth (for later sales dashboard)
+    JWT_SECRET: str = "change-me-to-a-long-random-string-in-production"
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
+    # CORS
+    CORS_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000",
+    ]
 
-    N8N_WEBHOOK_URL: str = "http://localhost:5678/webhook"
-    N8N_WEBHOOK_SECRET: str = "change-me"
+    # n8n integration
+    N8N_WEBHOOK_URL: str = "http://localhost:5678/webhook/lead-process-message"
+    N8N_WEBHOOK_SECRET: str = "change-me-n8n-secret"
 
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"
 
 
 settings = Settings()
